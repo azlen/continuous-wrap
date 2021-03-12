@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smooth Wrap</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter&family=Space+Grotesk&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text&display=swap');
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: "Space Grotesk", sans-serif;
+            font-family: "Crimson Text", serif;
+        }
+        body {
+            display: flex;
+            align-items: center;
+        }
+        #container {
+            width: 500px;
+            margin: auto;
+        }
+        .line {
+            word-wrap: none;
+            white-space:nowrap;
+        }
+        #cutoff {
+            /* overflow: hidden; */
+            position: relative;
+        }
+
+        .test {
+            position: absolute;
+            white-space: pre;
+            opacity: 0.5;
+        }
+
+        .line-cutoff {
+            overflow: hidden;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="cutoff"></div>
+    </div> 
+
+    <script src="../util.js"></script>
+    <script>
+        let container = $('#container')
+        let cutoff = $('#cutoff')
+
+        function regenerate() {
+            cutoff.innerHTML = ''
+
+            let text = "Cities run the risk of asphyxiating in their own extent. There is a boundary of apraxia, a point of absolute dysfunction beyond which the city simply can no longer perform coordinated actions. The urban edge secures the viability of the city both functionally and perceptually. The delineability of the city is pre-condition for a sense of citizenship, therefore of urban democracy. Again, the logic of governance in a globalising culture and economy will demand a strengthening of locality, not a progressive dissipation of the autonomy of cities into the increasingly artificial ecoomies of nation-states. City edges--however permeable--are also formal, sets of places. It seems fundamental that one should be able to actually leave town: the 'edge city' means you never can."
+            let prevchars = ""
+            let nslice = 6;
+
+            let line = h('div.line')
+            cutoff.appendChild(h('div.line-cutoff', [ line ]))
+
+            let cutoff_bbox = cutoff.getBoundingClientRect()
+
+            while(text.length > 0) {
+                let chars = text.slice(0, text[1]==' '?2:1)
+                text = text.slice(text[1]==' '?2:1)
+
+                prevchars = prevchars + chars
+
+                let el = h('span', [chars])
+                line.appendChild(el)
+
+                let bbox = el.getBoundingClientRect()
+                let cx2 = cutoff_bbox.x + cutoff_bbox.width
+                if(bbox.x + bbox.width > cx2) {
+                    let abs = h('div.test', Array.from(prevchars.slice(-nslice)).map((c,i) => h('span', {
+                        'style': {'opacity': (i+1)/(nslice+1)}
+                    }, [c])))
+                    cutoff.appendChild(abs)
+                    let absbox = abs.getBoundingClientRect()
+                    abs.style.setProperty('left', -absbox.width + bbox.width - (cx2 - bbox.x) + 'px')
+
+                    let abs2 = h('div.test', {'style': {'margin-top': -bbox.height-1 + 'px', 'left': cutoff_bbox.width - (cx2 - bbox.x) + 'px'}}, Array.from(chars + text.slice(0, nslice - chars.length)).map((c,i) => h('span', {
+                        'style': {'opacity': (nslice-(i+1))/(nslice+1)}
+                    }, [c])))
+                    cutoff.appendChild(abs2)
+
+                    line = h('div.line', { 'style': { 'transform': `translateX(${-(cx2-bbox.x)}px)` } }, h('span', [chars]))
+                    cutoff.appendChild(h('div.line-cutoff', [ line ]))
+
+                    
+                }
+
+                
+            }
+        }
+
+        regenerate()
+        setTimeout(regenerate, 100)
+
+        window.addEventListener('mousemove', e => {
+            console.log(e.buttons)
+            if(e.buttons == 1) {
+                e.preventDefault()
+                console.log(e.clientX - window.innerWidth/2)
+                container.style.setProperty('width', Math.abs(e.clientX - window.innerWidth/2) * 2 + 'px')
+                regenerate()
+            }
+        })
+
+    </script>
+</body>
+</html>
