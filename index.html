@@ -107,10 +107,8 @@
         setTimeout(regenerate, 100)
 
         window.addEventListener('mousemove', e => {
-            console.log(e.buttons)
             if(e.buttons == 1) {
                 e.preventDefault()
-                console.log(e.clientX - window.innerWidth/2)
                 container.style.setProperty('width', Math.abs(e.clientX - window.innerWidth/2) * 2 + 'px')
                 regenerate()
             }
